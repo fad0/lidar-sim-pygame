@@ -1,0 +1,7 @@
+Main file is gen_mavg_bavg.py
+
+It asks for a floorplan file, robot location, angle, location, and number of lidar sample points per revolution.
+Using the pygame library, it mimics the lidar sensing and gets an array of sample points.
+From the sample point it tries to identify all the straight lines and the angles between those lines.  
+It then compares that to the floorplan walls and anges to determine its location vector.
+Currently, the compare is disabled while I focus on reliably identifying the lines (walls).
