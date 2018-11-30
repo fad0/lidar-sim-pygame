@@ -342,11 +342,12 @@ while not done:
             for i in range(len(stable_sp_mavg)):
                 index = stable_sp_mavg[i][1]
                 m_span = stable_sp_mavg[i][2]
-                m_index = (index + m_span) % len(sp_mavg)
+                m_index = (index + 1) % len(sp_mavg)
+                m_index_span = (index + m_span) % len(sp_mavg)
 #                mavg_seg_ep.append([sp_xyavg[index], sp_xyavg[m_index]])
-                mavg_seg_ep.append([sp_xyavg[index], sample_points[m_index]])
-                print("index = ", index,"   m_span = ", m_span,"   m_index = ", m_index,"   sp_xyavg[index] = ",
-                      sp_xyavg[index],"   sample_points[m_index] = ", sample_points[m_index])
+                mavg_seg_ep.append([sample_points[m_index], sample_points[m_index_span]])
+                print("m_index = ", m_index,"   m_span = ", m_span,"   m_index_span = ", m_index_span,\
+                      "   sample_points[m_index] = ", sample_points[m_index])
             for i in mavg_seg_ep:
                 print("mavg_seg_ep = ", i)
 
