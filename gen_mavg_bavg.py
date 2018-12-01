@@ -351,6 +351,14 @@ while not done:
             for i in mavg_seg_ep:
                 print("mavg_seg_ep = ", i)
 
+            m_mavg_seg_ep = find_ep_slopes(mavg_seg_ep)
+            print("m_mavg_seg_ep = ", m_mavg_seg_ep)
+
+            m_mavg_seg_ep = merge_lines(mavg_seg_ep, m_mavg_seg_ep)
+            for i in mavg_seg_ep:
+                print("mavg_seg_ep = ", i[0],"   ",i[1])
+            print("m_mavg_seg_ep = ", m_mavg_seg_ep)
+
 #            stable_sp_bavg = []
 #            bavg_cntr = 0
 #            i=0

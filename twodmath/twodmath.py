@@ -189,45 +189,33 @@ def find_lines(m_group, sp_data):
 
 ##### Merge adjacent lines on the same line #####
 def merge_lines(endpoints, m_endpoints):
-#    for i in range(len(endpoints) - 1):
+    loop_cntr = 0
     i = 0
     while True:
-        if abs(m_endpoints[i + 1] - m_endpoints[i]) <= abs(m_endpoints[i]*SLOPE_ERR_TOLERANCE):
-            gap_endpoints = [endpoints[i][1],endpoints[i + 1][0]]
-            #print("m_endpoints[",i + 1,"] = ", m_endpoints[i + 1])
-            #print("m_endpoints[",i,"] = ", m_endpoints[i])
-            #print("gap_endpoints = ", gap_endpoints)
+        i_mod = (i + 1) % len(endpoints)
+        diff_m_ep = abs(m_endpoints[i_mod] - m_endpoints[i])
+        max_err = abs(m_endpoints[i]*SLOPE_ERR_TOLERANCE)
+        print("loop_cntr = ", loop_cntr,"  i = ", i,"  diff_m_ep = ", diff_m_ep,"  max_err = ", max_err)
+        if (diff_m_ep <= max_err) or \
+           ((abs(m_endpoints[i_mod]) <= MAVG_MIN) and (abs(m_endpoints[i]) <= MAVG_MIN)):
+            gap_endpoints = [endpoints[i][1],endpoints[i_mod][0]]
             gap_slope = find_slopes(gap_endpoints)
-            #print("gap_slope = ", gap_slope)
-            if abs(m_endpoints[i] - gap_slope) <= abs(m_endpoints[i]*SLOPE_ERR_TOLERANCE):
-            #    print("2 gap_slope ",i," = ", gap_slope)
-                endpoints[i][1] = endpoints[i + 1][1]
-                del endpoints[i + 1]
-                m_endpoints = np.delete(m_endpoints, [i + 1])
-        i += 1
+            diff_m_gap = abs(gap_slope - m_endpoints[i])
+            print("diff_m_gap = ", diff_m_gap,"  gap_slope = ", gap_slope)
+            if (diff_m_gap <= max_err) or (abs(gap_slope) <= MAVG_MIN):
+                endpoints[i][1] = endpoints[i_mod][1]
+                del endpoints[i_mod]
+                m_endpoints[i] = (m_endpoints[i] + gap_slope + m_endpoints[i_mod])/3
+                m_endpoints = np.delete(m_endpoints, [i_mod])
+                print("endpoints[i][1] = ", endpoints[i][1]," m_endpoints[i] = ", m_endpoints[i])
+            else:
+                i += 1
+        else:
+            i += 1
+        loop_cntr += 1
         if i > len(endpoints) - 1:
-            i = len(endpoints) - 1
-        if i >= len(endpoints) - 1:
-            print("i = ",i)
-            print("len(endpoints) - 1 = ", len(endpoints) - 1)
-            print("len(m_endpoints) = ", len(m_endpoints))
-            if abs(m_endpoints[0] - m_endpoints[i]) <= abs(m_endpoints[i]*SLOPE_ERR_TOLERANCE):
-                gap_endpoints = [endpoints[i][1],endpoints[0][0]]
-            #    print("m_endpoints[0] = ", m_endpoints[0])
-            #    print("m_endpoints[",i,"] = ", m_endpoints[i])
-            #    print("gap_endpoints = ", gap_endpoints)
-                gap_slope = find_slopes(gap_endpoints)
-            #    print("gap_slope = ", gap_slope)
-                if abs(m_endpoints[i] - gap_slope) <= abs(m_endpoints[i]*SLOPE_ERR_TOLERANCE):
-            #        print("2 gap_slope ",i," = ", gap_slope)
-                    endpoints[i][1] = endpoints[0][1]
-                    del endpoints[0]
-                    m_endpoints = np.delete(m_endpoints, [0])
-            #print("m_endpoints = ", m_endpoints)
             return m_endpoints
             break
-
-
 
 ##### END Merge adjacent lines on the same line #####
 
