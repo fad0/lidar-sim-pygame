@@ -40,4 +40,4 @@ MAX_SP_SEPARATION = 20
 # minimum running average slope for acceptable m stability
 # for angles close to 0 because small variation may not 
 # meet ASLOPE_ERR_TOLERANCE requirement
-MAVG_MIN = 0.01
+MAVG_MIN = 0.015

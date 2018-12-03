@@ -1,13 +1,14 @@
 """
-Defs for 2d graphic manipulation   
+Defs for 2d graphic manipulation
 
 Dirk Reese
 01/11/2018
 
 """
-import pygame 
+import pygame
 import numpy as np
 import os
+import math
 
 #####  LOAD CONSTANTS  #####
 from twodmath.constants import *
@@ -80,54 +81,14 @@ def rotate_array(inp_list, rotation_point, rotation_angle):
 def find_slopes(inp_list):
     if len(inp_list) == 2:
         m_array = np.empty(1)
+        m_array[0] = np.arctan2((inp_list[1][1] - inp_list[0][1]),\
+                                (inp_list[1][0] - inp_list[0][0]))
     else:
         m_array = np.empty(len(inp_list))
-    for i in range(len(inp_list) - 1):
-        #if line is vertical, set slope to pi/2 or -pi/2
-        if inp_list[i + 1][0] == inp_list[i][0]:
-            if (inp_list[i + 1][1] > inp_list[i][1]):
-                m_array[i] = np.pi/2
-        #        m_array_deg[i] = 90
-            else:
-                m_array[i] = (-1)*np.pi/2
-        #        m_array_deg[i] = -90
-        elif inp_list[i + 1][1] == inp_list[i][1]:
-            if inp_list[i + 1][0] > inp_list[i][0]:
-                m_array[i] = 0
-            else:
-                m_array[i] = np.pi
-        else:
-            m_array[i] = np.arctan((inp_list[i + 1][1] - inp_list[i][1])/ \
-                                   (inp_list[i + 1][0] - inp_list[i][0]))
-            if (((inp_list[i + 1][1]) > (inp_list[i][1])) and (m_array[i] < 0)):
-                m_array[i] = m_array[i] + np.pi
-            elif (((inp_list[i + 1][1]) < (inp_list[i][1])) and (m_array[i] > 0)):
-                m_array[i] = m_array[i] - np.pi
-        #    m_array_deg[i] = np.rad2deg(m_array[i])
-
-    ### Calculate slope between last and first sample point ###
-    if len(inp_list) > 2:
-        if inp_list[0][0] == inp_list[len(inp_list) - 1][0]:
-            if inp_list[0][1] >= inp_list[len(inp_list) - 1][1]:
-                m_array[len(inp_list) - 1] = np.pi/2
-            #    m_array_deg[len(inp_list) - 1] = 90
-            else:
-                m_array[len(inp_list) - 1] = (-1)*np.pi/2
-            #    m_array_deg[len(inp_list) - 1] = -90
-        elif inp_list[0][1] == inp_list[len(inp_list) - 1][1]:
-            if inp_list[0][0] >= inp_list[len(inp_list) - 1][0]:
-                m_array[len(inp_list) - 1] = 0
-            else:
-                m_array[len(inp_list) - 1] = np.pi
-        else:
-            m_array[len(inp_list) - 1] = np.arctan((inp_list[0][1] - inp_list[len(inp_list) - 1][1])/ \
-                                   (inp_list[0][0] - inp_list[len(inp_list) - 1][0]))
-            if (((inp_list[0][1]) > (inp_list[len(inp_list) - 1][1])) and (m_array[len(inp_list) - 1] < 0)):
-                m_array[len(inp_list) - 1] = m_array[len(inp_list) - 1] + np.pi
-            elif (((inp_list[0][1]) < (inp_list[len(inp_list) - 1][1])) and (m_array[len(inp_list) - 1] > 0)):
-                m_array[len(inp_list) - 1] = m_array[len(inp_list) - 1] - np.pi
-            #m_array_deg[len(inp_list) - 1] = np.rad2deg(m_array[len(inp_list) - 1])
-
+        for i in range(len(inp_list)):
+            i_mod = (i + 1) % len(inp_list)
+            m_array[i] = np.arctan2((inp_list[i_mod][1] - inp_list[i][1]),\
+                                    (inp_list[i_mod][0] - inp_list[i][0]))
     return(m_array)
 
 ##### End Calculate slope angle #####
@@ -137,31 +98,51 @@ def find_slopes(inp_list):
 def find_ep_slopes(endpoints):
     m_array = np.empty(len(endpoints))
     for i in range(len(endpoints)):
-        #if line is vertical, set slope to pi/2 or -pi/2
-        if endpoints[i][1][0] == endpoints[i][0][0]:
-            if (endpoints[i][1][1] > endpoints[i][0][1]):
-                m_array[i] = np.pi/2
-        #        m_array_deg[i] = 90
-            else:
-                m_array[i] = (-1)*np.pi/2
-        #        m_array_deg[i] = -90
-        elif endpoints[i][1][1] == endpoints[i][0][1]:
-            if endpoints[i][1][0] > endpoints[i][0][0]:
-                m_array[i] = 0
-            else:
-                m_array[i] = np.pi
-        else:
-            m_array[i] = np.arctan((endpoints[i][1][1] - endpoints[i][0][1])/ \
-                                   (endpoints[i][1][0] - endpoints[i][0][0]))
-            if (((endpoints[i][1][1]) > (endpoints[i][0][1])) and (m_array[i] < 0)):
-                m_array[i] = m_array[i] + np.pi
-            elif (((endpoints[i][1][1]) < (endpoints[i][0][1])) and (m_array[i] > 0)):
-                m_array[i] = m_array[i] - np.pi
-        #    m_array_deg[i] = np.rad2deg(m_array[i])
-
+        m_array[i] = np.arctan2((endpoints[i][1][1] - endpoints[i][0][1]),\
+                                (endpoints[i][1][0] - endpoints[i][0][0]))
     return(m_array)
 
 ##### End Calculate endpoints slope angle #####
+
+
+##### Calculate average angles and angle differences #####
+"""These two def were copied from:
+      https://greek0.net/blog/2016/06/14/working_with_angles
+      from Christian Aichinger.
+   """
+
+def average_angles(angles):
+    """Average (mean) of angles
+
+    Return the average of an input sequence of angles. The result is between
+    ``0`` and ``2 * math.pi``.
+    If the average is not defined (e.g. ``average_angles([0, math.pi]))``,
+    a ``ValueError`` is raised.
+    """
+
+    x = sum(math.cos(a) for a in angles)
+    y = sum(math.sin(a) for a in angles)
+
+    if x == 0 and y == 0:
+        raise ValueError(
+            "The angle average of the inputs is undefined: %r" % angles)
+
+    # To get outputs from -pi to +pi, delete everything but math.atan2() here.
+#    return math.fmod(math.atan2(y, x) + 2 * math.pi, 2 * math.pi)
+    return math.atan2(y, x)
+
+
+def subtract_angles(lhs, rhs):
+    """Return the signed difference between angles lhs and rhs
+
+    Return ``(lhs - rhs)``, the value will be within ``[-math.pi, math.pi)``.
+    Both ``lhs`` and ``rhs`` may either be zero-based (within
+    ``[0, 2*math.pi]``), or ``-pi``-based (within ``[-math.pi, math.pi]``).
+    """
+
+    return math.fmod((lhs - rhs) + math.pi * 3, 2 * math.pi) - math.pi
+
+##### END Calculate average angles and angle differences #####
 
 ##### Find Lines #####
 

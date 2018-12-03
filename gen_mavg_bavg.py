@@ -302,7 +302,7 @@ while not done:
 #            print("xy_ext = ", xy_ext)
 #            b_ext = np.append(b_array, b_array[:AVG_SAMPLE_LENGTH])
             for i in range(len(m_array)):
-                sp_mavg[i] = np.average(m_ext[i:i + AVG_SAMPLE_LENGTH])
+                sp_mavg[i] = average_angles(m_ext[i:i + AVG_SAMPLE_LENGTH])
                 sp_xyavg[i] = np.average(xy_ext[i:i + AVG_SAMPLE_LENGTH], axis=0)
                 sp_bavg[i] = sp_xyavg[i][1] - sp_mavg[i]*sp_xyavg[i][0]
 #                print("i = ", i,"   i_mod = ", i_mod)
@@ -318,8 +318,8 @@ while not done:
             i=0
             while i < len(sp_mavg) :
                 index = (i + mavg_cntr + 1) % len(sp_mavg)
-                while ((abs(sp_mavg[index] - sp_mavg[i]) <= abs(sp_mavg[i]*ASLOPE_ERR_TOLERANCE)) \
-                      and sp_separation[index] <= MAX_SP_SEPARATION) or abs(sp_mavg[index]) < MAVG_MIN:
+                while ((abs(subtract_angles(sp_mavg[index],sp_mavg[i])) < abs(sp_mavg[index])*ASLOPE_ERR_TOLERANCE) \
+                      or (abs(sp_mavg[index]) < MAVG_MIN)) and sp_separation[index] <= MAX_SP_SEPARATION:
                     print("sp_separation[",index,"] = ", sp_separation[index])
                     mavg_cntr += 1
                     index = (i + mavg_cntr + 1) % len(sp_mavg)
@@ -354,10 +354,10 @@ while not done:
             m_mavg_seg_ep = find_ep_slopes(mavg_seg_ep)
             print("m_mavg_seg_ep = ", m_mavg_seg_ep)
 
-            m_mavg_seg_ep = merge_lines(mavg_seg_ep, m_mavg_seg_ep)
-            for i in mavg_seg_ep:
-                print("mavg_seg_ep = ", i[0],"   ",i[1])
-            print("m_mavg_seg_ep = ", m_mavg_seg_ep)
+#            m_mavg_seg_ep = merge_lines(mavg_seg_ep, m_mavg_seg_ep)
+#            for i in mavg_seg_ep:
+#                print("mavg_seg_ep = ", i[0],"   ",i[1])
+#            print("m_mavg_seg_ep = ", m_mavg_seg_ep)
 
 #            stable_sp_bavg = []
 #            bavg_cntr = 0
